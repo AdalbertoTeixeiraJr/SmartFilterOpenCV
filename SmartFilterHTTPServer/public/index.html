@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf8">
+		<title>SmartFilter</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular.min.js"></script>
+	</head>
+	<body ng-app="myApp" ng-controller="myController as mc">
+		<h2>SmartFilter</h2>
+		<p>A program that applies filters to your photos!</p>
+		<form ng-submit="mc.sendPhoto()">
+			<input type="file" id="file" accept="image/*">
+			<select ng-model="mc.type">
+				<option value="0">Grayscale Filter</option>
+				<option value="1">Edge Detector Filter</option>
+			</select>
+			<input type="submit" value="Send photo">
+		</form>
+		<img src="{{ mc.photo }}">
+	</body>
+	<script>
+	var app = angular.module('myApp', []); // create app
+	var file;
+	document.getElementById('file').onchange = function(ev) {
+		file = ev.target.files[0];
+	};
+	app.controller('myController', function($http) {
+		var self = this;
+		this.type = "0";
+		this.sendPhoto = function() {
+			$http({
+				method: 'POST',
+				url: '/send_photo',
+				data: {
+					type: self.type,
+					photo: file
+				},	
+				headers: {
+					'Content-Type': undefined
+				},
+				transformRequest: function(data, headersGetter) {
+					var formData = new FormData();
+					angular.forEach(data, function(value, key) {
+						formData.append(key, value);
+					});
+					return formData;
+				}
+			}).then(function(result) {
+				self.photo = "/photo/"+result.data.output;
+				alert(self.photo);
+				console.log(result.data);
+			});	
+		};
+	});
+	</script>
+</html>
